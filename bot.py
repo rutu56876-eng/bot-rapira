@@ -4,7 +4,7 @@ import sqlite3
 import time
 from telebot import types
 
-BOT_TOKEN = "8912679005:AAGy-EezdeN1OKYTKde6RovEo-32J4Cy3PM"
+BOT_TOKEN = "8912679005:AAFM9gKnLmDL64Fszqi7Vy7HoYTaQQUpAaw"
 ADMIN_ID = 8481806014
 GIFT_ID = "heart"
 RAPIRA_ID = "153935"
