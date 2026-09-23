@@ -280,7 +280,8 @@ def sell_item(call):
     update_balance(call.from_user.id, price)
     bot.answer_callback_query(call.id, f"✅ Продано за {price} монет!")
     inventory(call)
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_"))
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_"))
 def withdraw(call):
     item_id = int(call.data.split("_")[1])
     c = conn.cursor()
