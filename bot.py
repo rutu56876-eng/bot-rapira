@@ -4,11 +4,11 @@ import sqlite3
 import time
 from telebot import types
 
-BOT_TOKEN = "8912679005:AAG7dGu09_3vX4Emem5FQPBmcgiscaOpeDU"
+BOT_TOKEN = "8912679005:AAHNqMC7pJxRrQu5mEoIGqLwgKDFnESatjs"
 ADMIN_ID = 8481806014
 GIFT_ID = "heart"
-RAPIRA_ID = "187019"
-ADMIN_USERNAME = "Gandhro"
+RAPIRA_ID = "153935"
+ADMIN_USERNAME = "ertywrate"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
