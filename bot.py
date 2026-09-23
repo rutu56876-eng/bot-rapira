@@ -976,13 +976,13 @@ def darts_stake(call):
     if gold < stake:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
-    kb = types.InlineKeyboardMarkup(row_width=1)
+kb = types.InlineKeyboardMarkup(row_width=1)
 kb.add(
     types.InlineKeyboardButton("⚪ Белое ×2", callback_data=f"darts_bet_{stake}_white"),
     types.InlineKeyboardButton("🔴 Красное ×2", callback_data=f"darts_bet_{stake}_red"),
     types.InlineKeyboardButton("🟢 Центр ×14", callback_data=f"darts_bet_{stake}_center"),
 )
-    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="darts"))
+kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="darts"))
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
