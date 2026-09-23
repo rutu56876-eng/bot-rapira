@@ -4,7 +4,7 @@ import sqlite3
 import time
 from telebot import types
 
-BOT_TOKEN = "8912679005:AAHNqMC7pJxRrQu5mEoIGqLwgKDFnESatjs"
+BOT_TOKEN = "8912679005:AAGy-EezdeN1OKYTKde6RovEo-32J4Cy3PM"
 ADMIN_ID = 8481806014
 GIFT_ID = "heart"
 RAPIRA_ID = "153935"
@@ -325,9 +325,9 @@ def withdraw(call):
     )
     bot.answer_callback_query(call.id)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("confirm_withdraw_"))
-def confirm_withdraw(call):
-    item_id = int(call.data.split("_")[2])
+@bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_"))
+def withdraw(call):
+    item_id = int(call.data.split("_")[1])
     c = conn.cursor()
     c.execute("SELECT item, rarity FROM inventory WHERE id = ? AND user_id = ?",
               (item_id, call.from_user.id))
@@ -335,37 +335,50 @@ def confirm_withdraw(call):
     if not item:
         bot.answer_callback_query(call.id, "Скин не найден!", show_alert=True)
         return
+    msg = bot.send_message(call.message.chat.id, "✍️ Напиши свой НИК в Rapira (для передачи скина):")
+    bot.register_next_step_handler(msg, withdraw_nick, item_id)
+
+def withdraw_nick(message, item_id):
+    nick = message.text
+    c = conn.cursor()
+    c.execute("SELECT item, rarity FROM inventory WHERE id = ? AND user_id = ?",
+              (item_id, message.from_user.id))
+    item = c.fetchone()
+    if not item:
+        bot.send_message(message.chat.id, "❌ Скин не найден.")
+        return
     c.execute("INSERT INTO withdraws (user_id, item, rarity) VALUES (?, ?, ?)",
-              (call.from_user.id, item[0], item[1]))
+              (message.from_user.id, item[0], item[1]))
     c.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
     conn.commit()
     bot.send_message(ADMIN_ID,
-        f"🔔 Заявка на вывод\nИгрок: {call.from_user.id}\nСкин: {item[0]} ({item[1]})")
+        f"🔔 Заявка на вывод\n"
+        f"Игрок: {message.from_user.id}\n"
+        f"Ник в Rapira: {nick}\n"
+        f"Скин: {item[0]} ({item[1]})")
     kb = types.InlineKeyboardMarkup(row_width=1)
     kb.add(types.InlineKeyboardButton("💬 Поддержка", callback_data="support"))
     kb.add(types.InlineKeyboardButton("✅ Подтвердить получение", callback_data=f"received_{item_id}"))
     text = (
         f"📤 Заявка на вывод создана!\n\n"
         f"🎁 Скин: {item[0]}\n"
-        f"⭐ Редкость: {item[1]}\n\n"
+        f"⭐ Редкость: {item[1]}\n"
+        f"👤 Ник: {nick}\n\n"
         f"📌 Что делать:\n"
         f"1. Добавь в друзья в Rapira: {RAPIRA_ID}\n"
-        f"2. В течение 15 минут будь онлайн в игре.\n"
-        f"3. После получения скина — нажми «✅ Подтвердить получение».\n\n"
-        f"🕐 Вывод работает: с 18:00 до 22:00 (МСК).\n"
-        f"⏰ Если ты в другое время — заявка сохранится, выдам вечером.\n\n"
-        f"⚠️ Не пиши «скам» — я реальный админ, всё выдам."
+        f"2. В течение 15 минут будь онлайн.\n"
+        f"3. После получения — нажми «✅ Подтвердить».\n\n"
+        f"🕐 Вывод: с 18:00 до 22:00 (МСК)."
     )
     try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
+        bot.delete_message(message.chat.id, message.message_id)
     except:
         pass
     try:
         with open("withdraw.png", "rb") as photo:
-            bot.send_photo(call.message.chat.id, photo, caption=text, reply_markup=kb)
+            bot.send_photo(message.chat.id, photo, caption=text, reply_markup=kb)
     except:
-        bot.send_message(call.message.chat.id, text, reply_markup=kb)
-    bot.answer_callback_query(call.id)
+        bot.send_message(message.chat.id, text, reply_markup=kb)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("received_"))
 def received(call):
@@ -639,8 +652,7 @@ def upg_want(message, nick):
     )
     bot.send_message(
         message.chat.id,
-        f"❓ Ты хочешь закинуть: {skin_in}?\n"
-        f"Ник в Rapira: {nick}\n\n"
+        f"❓ Ты хочешь закинуть: {skin_in}?\nНик в Rapira: {nick}\n\n"
         f"🕐 Приём скинов: с 18:00 до 22:00 (МСК).\n"
         f"⚠️ Не пиши «скам» — я реальный админ, всё приму.",
         reply_markup=kb
@@ -1077,9 +1089,33 @@ def support(call):
     bot.register_next_step_handler(msg, send_support)
 
 def send_support(message):
-    bot.send_message(ADMIN_ID,
-        f"💬 Поддержка\nИгрок: {message.from_user.id} (@{message.from_user.username})\nСообщение: {message.text}")
+    user_id = message.from_user.id
+    username = message.from_user.username or "нет"
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("✍️ Ответить", callback_data=f"support_reply_{user_id}"))
+    bot.send_message(
+        ADMIN_ID,
+        f"💬 Поддержка\n"
+        f"Игрок: {user_id} (@{username})\n"
+        f"Сообщение: {message.text}",
+        reply_markup=kb
+    )
     bot.send_message(message.chat.id, "✅ Сообщение отправлено админу. Ожидай ответа.", reply_markup=main_menu())
+@bot.callback_query_handler(func=lambda call: call.data.startswith("support_reply_"))
+def support_reply(call):
+    if call.from_user.id != ADMIN_ID:
+        bot.answer_callback_query(call.id, "❌ Нет доступа.", show_alert=True)
+        return
+    user_id = int(call.data.split("_")[2])
+    msg = bot.send_message(ADMIN_ID, f"✍️ Напиши ответ для игрока {user_id}:")
+    bot.register_next_step_handler(msg, send_reply, user_id)
+
+def send_reply(message, user_id):
+    try:
+        bot.send_message(user_id, f"💬 Ответ от админа:\n\n{message.text}")
+        bot.send_message(ADMIN_ID, f"✅ Ответ отправлен игроку {user_id}")
+    except:
+        bot.send_message(ADMIN_ID, "❌ Не удалось отправить.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "back")
 def back(call):
