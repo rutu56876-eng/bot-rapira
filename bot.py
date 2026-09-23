@@ -309,32 +309,6 @@ def withdraw(call):
     if not item:
         bot.answer_callback_query(call.id, "Скин не найден!", show_alert=True)
         return
-    kb = types.InlineKeyboardMarkup(row_width=2)
-    kb.add(
-        types.InlineKeyboardButton("✅ Да", callback_data=f"confirm_withdraw_{item_id}"),
-        types.InlineKeyboardButton("❌ Отмена", callback_data="inventory"),
-    )
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(
-        call.message.chat.id,
-        f"❓ Вы точно хотите вывести этот скин?\n\n🎁 Скин: {item[0]}\n⭐ Редкость: {item[1]}",
-        reply_markup=kb
-    )
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_"))
-def withdraw(call):
-    item_id = int(call.data.split("_")[1])
-    c = conn.cursor()
-    c.execute("SELECT item, rarity FROM inventory WHERE id = ? AND user_id = ?",
-              (item_id, call.from_user.id))
-    item = c.fetchone()
-    if not item:
-        bot.answer_callback_query(call.id, "Скин не найден!", show_alert=True)
-        return
     msg = bot.send_message(call.message.chat.id, "✍️ Напиши свой НИК в Rapira (для передачи скина):")
     bot.register_next_step_handler(msg, withdraw_nick, item_id)
 
