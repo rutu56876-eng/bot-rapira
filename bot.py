@@ -757,7 +757,8 @@ def confirm_skin(message):
         bot.send_message(ADMIN_ID, f"✅ Скин {skin_name} ({price}) зачислен игроку {user_id}")
     except:
         bot.send_message(ADMIN_ID, "❌ Формат: /confirm_skin ID ЦЕНА Название")
-        @bot.callback_query_handler(func=lambda call: call.data.startswith("upg_pick_"))
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("upg_pick_"))
 def upgrade_pick(call):
     item_id = int(call.data.split("_")[2])
     c = conn.cursor()
