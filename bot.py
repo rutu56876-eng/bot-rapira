@@ -139,12 +139,12 @@ def main_menu():
         types.InlineKeyboardButton("🎒 Инвентарь", callback_data="inventory"),
         types.InlineKeyboardButton("🛒 Купить скины", callback_data="shop"),
         types.InlineKeyboardButton("💳 Пополнить", callback_data="topup"),
-        types.InlineKeyboardButton("🔄 Апгрейд", callback_data="upgrade"),
         types.InlineKeyboardButton("💰 Голда", callback_data="buy_gold"),
         types.InlineKeyboardButton("🎲 Кубик", callback_data="dice"),
         types.InlineKeyboardButton("🎯 Дартс", callback_data="darts"),
         types.InlineKeyboardButton("🏆 Рейтинг", callback_data="rating"),
         types.InlineKeyboardButton("💬 Поддержка", callback_data="support"),
+        types.InlineKeyboardButton("📢 Канал", url="https://t.me/luckydro_p"),
     )
     return kb
     
@@ -632,7 +632,7 @@ def upgrade_start(call):
 def upg_add(call):
     msg = bot.send_message(call.message.chat.id, "✍️ Напиши свой НИК в Rapira:")
     bot.register_next_step_handler(msg, upg_nick)
-
+    
 def upg_nick(message):
     nick = message.text
     msg = bot.send_message(message.chat.id, "✍️ Напиши название скина, который хочешь закинуть:")
@@ -641,16 +641,27 @@ def upg_nick(message):
 def upg_want(message, nick):
     skin_in = message.text
     user_id = message.from_user.id
-    UPGRADE_REQUESTS[user_id] = {"in": skin_in, "nick": nick}
+    # Ищем цену скина в SKINS
+    price = 0
+    for cat in SKINS:
+        for name, p in SKINS[cat]:
+            if name.lower() == skin_in.lower():
+                price = p
+                break
+    if price == 0:
+        bot.send_message(message.chat.id, "❌ Скин не найден. Попробуй ещё раз.")
+        return
+    UPGRADE_REQUESTS[user_id] = {"in": skin_in, "nick": nick, "price": price}
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton("✅ Да", callback_data=f"upg_send_{user_id}"),
-        types.InlineKeyboardButton("❌ Отмена", callback_data="upgrade"),
+        types.InlineKeyboardButton("❌ Отмена", callback_data="back"),
     )
     bot.send_message(
         message.chat.id,
-        f"❓ Ты хочешь закинуть: {skin_in}?\nНик в Rapira: {nick}\n\n"
-        f"🕐 Приём скинов: с 18:00 до 22:00 (МСК).\n"
+        f"❓ Ты хочешь закинуть: {skin_in} ({price} голды)?\n"
+        f"Ник в Rapira: {nick}\n\n"
+        f"🕐 Приём: с 18:00 до 22:00 (МСК).\n"
         f"⚠️ Не пиши «скам» — я реальный админ, всё приму.",
         reply_markup=kb
     )
@@ -727,19 +738,18 @@ def adm_ok(call):
         return
     user_id = int(call.data.split("_")[2])
     data = UPGRADE_REQUESTS.get(user_id, {"in": "?", "price": 0})
-    skin_name = data["in"]
-    price = data["price"]
+    skin_name = data.get("in", "?")
+    price = data.get("price", 0)
     c = conn.cursor()
-    c.execute("INSERT INTO inventory (user_id, item, rarity, price) VALUES (?, ?, 'upgrade', ?)",
-              (user_id, skin_name, price))
+    c.execute("UPDATE users SET gold = gold + ? WHERE user_id = ?", (price, user_id))
     conn.commit()
-    bot.send_message(user_id, f"✅ Твой скин {skin_name} ({price} голды) зачислен в инвентарь!")
-    bot.send_message(ADMIN_ID, f"✅ Скин {skin_name} ({price}) зачислен игроку {user_id}")
+    bot.send_message(user_id, f"✅ Твой скин {skin_name} принят!\nТебе начислено {price} голды.")
+    bot.send_message(ADMIN_ID, f"✅ Скин {skin_name} принят. Игроку {user_id} начислено {price} голды.")
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
         pass
-    bot.send_message(call.message.chat.id, f"✅ Заявка подтверждена!\nИгрок: {user_id}\nСкин: {skin_name}")
+    bot.send_message(call.message.chat.id, f"✅ Подтверждено!\nИгрок: {user_id}\nСкин: {skin_name}\nНачислено: {price} голды")
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("upg_pick_"))
