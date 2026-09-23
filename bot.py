@@ -4,7 +4,7 @@ import sqlite3
 import time
 from telebot import types
 
-BOT_TOKEN = "8912679005:AAHNqMC7pJxRrQu5mEoIGqLwgKDFnESatjs"
+BOT_TOKEN = "8912679005:AAG7dGu09_3vX4Emem5FQPBmcgiscaOpeDU"
 ADMIN_ID = 8481806014
 GIFT_ID = "heart"
 RAPIRA_ID = "153935"
@@ -302,9 +302,7 @@ def withdraw(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"❓ Вы точно хотите вывести этот скин?\n\n"
-        f"🎁 Скин: {item[0]}\n"
-        f"⭐ Редкость: {item[1]}",
+        f"❓ Вы точно хотите вывести этот скин?\n\n🎁 Скин: {item[0]}\n⭐ Редкость: {item[1]}",
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
@@ -367,11 +365,7 @@ def shop(call):
     for key, item in SHOP.items():
         kb.add(types.InlineKeyboardButton(f"{item['name']} — {item['price']} монет", callback_data=f"shop_buy_{key}"))
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    text = (
-        f"🛒 Магазин скинов\n\n"
-        f"💳 Твой баланс: {user[2]} монет\n\n"
-        f"Выбери скин:"
-    )
+    text = f"🛒 Магазин скинов\n\n💳 Твой баланс: {user[2]} монет\n\nВыбери скин:"
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
@@ -405,8 +399,7 @@ def shop_buy(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"❓ Купить {item['name']} за {item['price']} монет?\n\n"
-        f"💳 Баланс: {user[2]} монет",
+        f"❓ Купить {item['name']} за {item['price']} монет?\n\n💳 Баланс: {user[2]} монет",
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
@@ -440,11 +433,7 @@ def topup(call):
         types.InlineKeyboardButton("500 ⭐ = 1300 монет (бонус +300)", callback_data="pay_500"),
     )
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    text = (
-        "💳 Выбери сумму пополнения:\n\n"
-        "1 звезда = 2 монеты\n"
-        "🔥 Бонусы за крупные пополнения!"
-    )
+    text = "💳 Выбери сумму пополнения:\n\n1 звезда = 2 монеты\n🔥 Бонусы за крупные пополнения!"
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
@@ -471,21 +460,6 @@ def pay(call):
     )
     bot.answer_callback_query(call.id)
 
-@bot.callback_query_handler(func=lambda call: call.data == "cancel_pay")
-def cancel_pay(call):
-    kb = types.InlineKeyboardMarkup()
-    kb.add(types.InlineKeyboardButton("🏠 Вернуться в меню", callback_data="back"))
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(
-        call.message.chat.id,
-        "❌ Ошибка при пополнении счёта.\n\nПопробуй ещё раз или вернись в меню.",
-        reply_markup=kb
-    )
-    bot.answer_callback_query(call.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == "buy_gold")
 def buy_gold(call):
     user = get_user(call.from_user.id)
@@ -500,12 +474,7 @@ def buy_gold(call):
     kb.add(types.InlineKeyboardButton("🎰 Апгрейд голды", callback_data="gold_upgrade"))
     kb.add(types.InlineKeyboardButton(f"💬 Закинуть голду (@{ADMIN_USERNAME})", url=f"https://t.me/{ADMIN_USERNAME}"))
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    text = (
-        f"💰 Купить голду\n\n"
-        f"Твой баланс: {user[2]} монет\n"
-        f"Твоя голда: {gold}\n\n"
-        f"1 голда = ~1.5 монеты"
-    )
+    text = f"💰 Купить голду\n\nТвой баланс: {user[2]} монет\nТвоя голда: {gold}\n\n1 голда = ~1.5 монеты"
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
@@ -548,11 +517,7 @@ def gold_upgrade(call):
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
         pass
-    bot.send_message(
-        call.message.chat.id,
-        f"🎰 Апгрейд голды\n\nТвоя голда: {gold}\n\nВыбери шанс:",
-        reply_markup=kb
-    )
+    bot.send_message(call.message.chat.id, f"🎰 Апгрейд голды\n\nТвоя голда: {gold}\n\nВыбери шанс:", reply_markup=kb)
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("gmode_"))
@@ -702,11 +667,8 @@ def upg_send(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"📥 Заявка создана!\n\n"
-        f"📌 Добавь в друзья в Rapira: {RAPIRA_ID}\n"
-        f"⏰ Будь онлайн 5 минут.\n\n"
-        f"🕐 Приём скинов: с 18:00 до 22:00 (МСК).\n"
-        f"После передачи скина — админ подтвердит."
+        f"📥 Заявка создана!\n\n📌 Добавь в друзья в Rapira: {RAPIRA_ID}\n⏰ Будь онлайн 5 минут.\n\n"
+        f"🕐 Приём скинов: с 18:00 до 22:00 (МСК).\nПосле передачи скина — админ подтвердит."
     )
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton("✅ Подтвердить выдачу", callback_data=f"adm_ok_{user_id}"))
@@ -882,6 +844,7 @@ def upgrade_go(call):
     bot.send_message(call.message.chat.id, text, reply_markup=main_menu())
     bot.answer_callback_query(call.id)
 
+# === КУБИК ===
 @bot.callback_query_handler(func=lambda call: call.data == "dice")
 def dice_menu(call):
     user = get_user(call.from_user.id)
@@ -1027,7 +990,6 @@ def darts_bet(call):
     msg = bot.send_dice(call.message.chat.id, emoji="🎯")
     time.sleep(3)
     result = msg.dice.value
-    # Привязка значений к секторам
     if result == 1:
         result_color = "center"
         result_text = "🟢 Центр (1)"
@@ -1058,6 +1020,27 @@ def darts_bet(call):
         bot.send_message(call.message.chat.id, f"😢 Выпало: {result_text}\nПотерял {stake} голды.", reply_markup=main_menu())
     bot.answer_callback_query(call.id)
 
+@bot.callback_query_handler(func=lambda call: call.data == "rating")
+def rating(call):
+    c = conn.cursor()
+    c.execute("SELECT user_id, username, balance FROM users WHERE user_id != ? ORDER BY balance DESC LIMIT 10", (ADMIN_ID,))
+    top = c.fetchall()
+    text = "🏆 Топ-10 по балансу:\n\n"
+    if not top or all(t[2] == 0 for t in top):
+        text += "Пока никого нет."
+    else:
+        for i, (uid, uname, balance) in enumerate(top, 1):
+            name = f"@{uname}" if uname else f"ID {uid}"
+            text += f"{i}. {name} — {balance} монет\n"
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+    bot.send_message(call.message.chat.id, text, reply_markup=kb)
+    bot.answer_callback_query(call.id)
+
 @bot.pre_checkout_query_handler(func=lambda query: True)
 def checkout(query):
     bot.answer_pre_checkout_query(query.id, ok=True)
@@ -1080,31 +1063,8 @@ def support(call):
 
 def send_support(message):
     bot.send_message(ADMIN_ID,
-        f"💬 Поддержка\n"
-        f"Игрок: {message.from_user.id} (@{message.from_user.username})\n"
-        f"Сообщение: {message.text}")
+        f"💬 Поддержка\nИгрок: {message.from_user.id} (@{message.from_user.username})\nСообщение: {message.text}")
     bot.send_message(message.chat.id, "✅ Сообщение отправлено админу. Ожидай ответа.", reply_markup=main_menu())
-
-@bot.callback_query_handler(func=lambda call: call.data == "rating")
-def rating(call):
-    c = conn.cursor()
-    c.execute("SELECT user_id, username, balance FROM users WHERE user_id != ? ORDER BY balance DESC LIMIT 10", (ADMIN_ID,))
-    top = c.fetchall()
-    text = "🏆 Топ-10 по балансу:\n\n"
-    if not top or all(t[2] == 0 for t in top):
-        text += "Пока никого нет."
-    else:
-        for i, (uid, uname, balance) in enumerate(top, 1):
-            name = f"@{uname}" if uname else f"ID {uid}"
-            text += f"{i}. {name} — {balance} монет\n"
-    kb = types.InlineKeyboardMarkup()
-    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(call.message.chat.id, text, reply_markup=kb)
-    bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "back")
 def back(call):
@@ -1117,7 +1077,7 @@ while True:
         bot.polling(none_stop=True, timeout=60, long_polling_timeout=60)
     except Exception as e:
         print(f"Ошибка: {e}")
-        time.sleep(5)
+        time.sleep(5)  
         
         
         
