@@ -873,9 +873,13 @@ def upgrade_go(call):
 def dice_menu(call):
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-    kb = types.InlineKeyboardMarkup(row_width=3)
-    for i in range(1, 7):
-        kb.add(types.InlineKeyboardButton(f"🎲 {i}", callback_data=f"dice_bet_{i}"))
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("Ставка 50", callback_data="dice_stake_50"),
+        types.InlineKeyboardButton("Ставка 100", callback_data="dice_stake_100"),
+        types.InlineKeyboardButton("Ставка 500", callback_data="dice_stake_500"),
+        types.InlineKeyboardButton("Ставка 1000", callback_data="dice_stake_1000"),
+    )
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -883,21 +887,46 @@ def dice_menu(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"🎲 Кубик\n\nТвоя голда: {gold}\nСтавка: 100 голды\nМножитель: ×5\n\nВыбери число (1–6):",
+        f"🎲 Кубик\n\nТвоя голда: {gold}\n\nВыбери ставку:",
+        reply_markup=kb
+    )
+    bot.answer_callback_query(call.id)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("dice_stake_"))
+def dice_stake(call):
+    stake = int(call.data.split("_")[2])
+    user = get_user(call.from_user.id)
+    gold = user[5] if len(user) > 5 else 0
+    if gold < stake:
+        bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
+        return
+    kb = types.InlineKeyboardMarkup(row_width=3)
+    for i in range(1, 7):
+        kb.add(types.InlineKeyboardButton(f"🎲 {i}", callback_data=f"dice_bet_{stake}_{i}"))
+    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="dice"))
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+    bot.send_message(
+        call.message.chat.id,
+        f"🎲 Кубик\n\nСтавка: {stake} голды\nМножитель: ×5\n\nВыбери число (1–6):",
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("dice_bet_"))
 def dice_bet(call):
-    number = int(call.data.split("_")[2])
+    parts = call.data.split("_")
+    stake = int(parts[2])
+    number = int(parts[3])
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-    if gold < 100:
-        bot.answer_callback_query(call.id, "Недостаточно голды (нужно 100)!", show_alert=True)
+    if gold < stake:
+        bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
     c = conn.cursor()
-    c.execute("UPDATE users SET gold = gold - 100 WHERE user_id = ?", (call.from_user.id,))
+    c.execute("UPDATE users SET gold = gold - ? WHERE user_id = ?", (stake, call.from_user.id))
     conn.commit()
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -907,12 +936,12 @@ def dice_bet(call):
     time.sleep(3)
     result = msg.dice.value
     if result == number:
-        win = 500
+        win = stake * 5
         c.execute("UPDATE users SET gold = gold + ? WHERE user_id = ?", (win, call.from_user.id))
         conn.commit()
         bot.send_message(call.message.chat.id, f"🎉 Угадал! Выпало {result}.\nВыигрыш: +{win} голды!", reply_markup=main_menu())
     else:
-        bot.send_message(call.message.chat.id, f"😢 Не угадал. Выпало {result}, а ты выбрал {number}.\nПотерял 100 голды.", reply_markup=main_menu())
+        bot.send_message(call.message.chat.id, f"😢 Не угадал. Выпало {result}, а ты выбрал {number}.\nПотерял {stake} голды.", reply_markup=main_menu())
     bot.answer_callback_query(call.id)
 
 # === ДАРТС ===
@@ -920,9 +949,13 @@ def dice_bet(call):
 def darts_menu(call):
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-    kb = types.InlineKeyboardMarkup(row_width=3)
-    for i in range(1, 7):
-        kb.add(types.InlineKeyboardButton(f"🎯 {i}", callback_data=f"darts_bet_{i}"))
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("Ставка 50", callback_data="darts_stake_50"),
+        types.InlineKeyboardButton("Ставка 100", callback_data="darts_stake_100"),
+        types.InlineKeyboardButton("Ставка 500", callback_data="darts_stake_500"),
+        types.InlineKeyboardButton("Ставка 1000", callback_data="darts_stake_1000"),
+    )
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -930,21 +963,49 @@ def darts_menu(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"🎯 Дартс\n\nТвоя голда: {gold}\nСтавка: 100 голды\nМножитель: ×5\n\nВыбери число (1–6):",
+        f"🎯 Дартс\n\nТвоя голда: {gold}\n\nВыбери ставку:",
+        reply_markup=kb
+    )
+    bot.answer_callback_query(call.id)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("darts_stake_"))
+def darts_stake(call):
+    stake = int(call.data.split("_")[2])
+    user = get_user(call.from_user.id)
+    gold = user[5] if len(user) > 5 else 0
+    if gold < stake:
+        bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
+        return
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        types.InlineKeyboardButton("⚪ Белое ×2", callback_data=f"darts_bet_{stake}_white"),
+        types.InlineKeyboardButton("🔴 Красное ×2", callback_data=f"darts_bet_{stake}_red"),
+        types.InlineKeyboardButton("🟢 Центр ×14", callback_data=f"darts_bet_{stake}_center"),
+    )
+    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="darts"))
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+    bot.send_message(
+        call.message.chat.id,
+        f"🎯 Дартс\n\nСтавка: {stake} голды\n\nВыбери цвет:",
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("darts_bet_"))
 def darts_bet(call):
-    number = int(call.data.split("_")[2])
+    parts = call.data.split("_")
+    stake = int(parts[2])
+    choice = parts[3]
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-    if gold < 100:
-        bot.answer_callback_query(call.id, "Недостаточно голды (нужно 100)!", show_alert=True)
+    if gold < stake:
+        bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
     c = conn.cursor()
-    c.execute("UPDATE users SET gold = gold - 100 WHERE user_id = ?", (call.from_user.id,))
+    c.execute("UPDATE users SET gold = gold - ? WHERE user_id = ?", (stake, call.from_user.id))
     conn.commit()
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -952,14 +1013,27 @@ def darts_bet(call):
         pass
     msg = bot.send_dice(call.message.chat.id, emoji="🎯")
     time.sleep(3)
+    # 1-2 = центр, 3-4 = красное, 5-6 = белое
     result = msg.dice.value
-    if result == number:
-        win = 500
+    if result in [1, 2]:
+        result_color = "center"
+        result_text = "🟢 Центр"
+    elif result in [3, 4]:
+        result_color = "red"
+        result_text = "🔴 Красное"
+    else:
+        result_color = "white"
+        result_text = "⚪ Белое"
+    if choice == result_color:
+        if result_color == "center":
+            win = stake * 14
+        else:
+            win = stake * 2
         c.execute("UPDATE users SET gold = gold + ? WHERE user_id = ?", (win, call.from_user.id))
         conn.commit()
-        bot.send_message(call.message.chat.id, f"🎉 Угадал! Выпало {result}.\nВыигрыш: +{win} голды!", reply_markup=main_menu())
+        bot.send_message(call.message.chat.id, f"🎉 Выпало: {result_text}\nВыигрыш: +{win} голды!", reply_markup=main_menu())
     else:
-        bot.send_message(call.message.chat.id, f"😢 Не угадал. Выпало {result}, а ты выбрал {number}.\nПотерял 100 голды.", reply_markup=main_menu())
+        bot.send_message(call.message.chat.id, f"😢 Выпало: {result_text}\nПотерял {stake} голды.", reply_markup=main_menu())
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "rating")
