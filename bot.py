@@ -1014,7 +1014,7 @@ def darts_bet(call):
     msg = bot.send_dice(call.message.chat.id, emoji="🎯")
     time.sleep(3)
     result = msg.dice.value
-    if result == 1:
+if result == 1:
     result_color = "miss"
     result_text = "❌ Промах (мимо)"
 elif result == 2:
