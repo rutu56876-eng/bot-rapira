@@ -485,7 +485,8 @@ def cancel_pay(call):
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
-    @bot.callback_query_handler(func=lambda call: call.data == "buy_gold")
+
+@bot.callback_query_handler(func=lambda call: call.data == "buy_gold")
 def buy_gold(call):
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
