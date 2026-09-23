@@ -1014,24 +1014,24 @@ def darts_bet(call):
     msg = bot.send_dice(call.message.chat.id, emoji="🎯")
     time.sleep(3)
     result = msg.dice.value
-if result == 1:
-    result_color = "miss"
-    result_text = "❌ Промах (мимо)"
-elif result == 2:
-    result_color = "red"
-    result_text = "🔴 Красное (2)"
-elif result == 3:
-    result_color = "white"
-    result_text = "⚪ Белое (3)"
-elif result == 4:
-    result_color = "red"
-    result_text = "🔴 Красное (4)"
-elif result == 5:
-    result_color = "white"
-    result_text = "⚪ Белое (5)"
-else:
-    result_color = "center"
-    result_text = "🟢 Центр (6)"
+    if result == 1:
+        result_color = "miss"
+        result_text = "❌ Промах (мимо)"
+    elif result == 2:
+        result_color = "red"
+        result_text = "🔴 Красное (2)"
+    elif result == 3:
+        result_color = "white"
+        result_text = "⚪ Белое (3)"
+    elif result == 4:
+        result_color = "red"
+        result_text = "🔴 Красное (4)"
+    elif result == 5:
+        result_color = "white"
+        result_text = "⚪ Белое (5)"
+    else:
+        result_color = "center"
+        result_text = "🟢 Центр (6)"
     if choice == result_color:
         if result_color == "center":
             win = stake * 14
