@@ -6,6 +6,7 @@ from telebot import types
 
 BOT_TOKEN = "8912679005:AAFM9gKnLmDL64Fszqi7Vy7HoYTaQQUpAaw"
 ADMIN_ID = 8481806014
+CHANNEL_ID = "https://t.me/luckydro_p"
 GIFT_ID = "heart"
 RAPIRA_ID = "153935"
 ADMIN_USERNAME = "ertywrate"
@@ -146,6 +147,21 @@ def main_menu():
         types.InlineKeyboardButton("💬 Поддержка", callback_data="support"),
     )
     return kb
+    
+def check_sub(user_id):
+    try:
+        member = bot.get_chat_member(CHANNEL_ID, user_id)
+        if member.status in ["member", "administrator", "creator"]:
+            return True
+        return False
+    except:
+        return False
+
+def sub_menu():
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    kb.add(types.InlineKeyboardButton("📢 Подписаться", url=f"https://t.me/{CHANNEL_ID[1:]}"))
+    kb.add(types.InlineKeyboardButton("✅ Проверить", callback_data="check_sub"))
+    return kb   
 
 def send_menu(chat_id, message_id=None):
     user = get_user(chat_id)
@@ -228,6 +244,13 @@ def start(message):
         create_user(message.from_user.id, message.from_user.username, referrer_id)
         if referrer_id:
             update_balance(referrer_id, 10)
+    if not check_sub(message.from_user.id):
+        bot.send_message(
+            message.chat.id,
+            "🚀 Чтобы пользоваться ботом — подпишись на канал!",
+            reply_markup=sub_menu()
+        )
+        return
     send_menu(message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "profile")
@@ -954,11 +977,11 @@ def darts_stake(call):
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
     kb = types.InlineKeyboardMarkup(row_width=1)
-    kb.add(
-        types.InlineKeyboardButton("⚪ Белое ×2", callback_data=f"darts_bet_{stake}_white"),
-        types.InlineKeyboardButton("🔴 Красное ×2", callback_data=f"darts_bet_{stake}_red"),
-        types.InlineKeyboardButton("🟢 Центр ×14", callback_data=f"darts_bet_{stake}_center"),
-    )
+kb.add(
+    types.InlineKeyboardButton("⚪ Белое ×2", callback_data=f"darts_bet_{stake}_white"),
+    types.InlineKeyboardButton("🔴 Красное ×2", callback_data=f"darts_bet_{stake}_red"),
+    types.InlineKeyboardButton("🟢 Центр ×14", callback_data=f"darts_bet_{stake}_center"),
+)
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="darts"))
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -992,23 +1015,23 @@ def darts_bet(call):
     time.sleep(3)
     result = msg.dice.value
     if result == 1:
-        result_color = "center"
-        result_text = "🟢 Центр (1)"
-    elif result == 2:
-        result_color = "red"
-        result_text = "🔴 Красное (2)"
-    elif result == 3:
-        result_color = "white"
-        result_text = "⚪ Белое (3)"
-    elif result == 4:
-        result_color = "red"
-        result_text = "🔴 Красное (4)"
-    elif result == 5:
-        result_color = "white"
-        result_text = "⚪ Белое (5)"
-    else:
-        result_color = "red"
-        result_text = "🔴 Красное (6)"
+    result_color = "miss"
+    result_text = "❌ Промах (мимо)"
+elif result == 2:
+    result_color = "red"
+    result_text = "🔴 Красное (2)"
+elif result == 3:
+    result_color = "white"
+    result_text = "⚪ Белое (3)"
+elif result == 4:
+    result_color = "red"
+    result_text = "🔴 Красное (4)"
+elif result == 5:
+    result_color = "white"
+    result_text = "⚪ Белое (5)"
+else:
+    result_color = "center"
+    result_text = "🟢 Центр (6)"
     if choice == result_color:
         if result_color == "center":
             win = stake * 14
@@ -1093,8 +1116,23 @@ def send_reply(message, user_id):
 
 @bot.callback_query_handler(func=lambda call: call.data == "back")
 def back(call):
+    if not check_sub(call.from_user.id):
+        bot.send_message(
+            call.message.chat.id,
+            "🚀 Чтобы пользоваться ботом — подпишись на канал!",
+            reply_markup=sub_menu()
+        )
+        return
     send_menu(call.message.chat.id, call.message.message_id)
     bot.answer_callback_query(call.id)
+
+@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
+def check_sub_callback(call):
+    if check_sub(call.from_user.id):
+        bot.answer_callback_query(call.id, "✅ Подписка подтверждена!")
+        send_menu(call.message.chat.id, call.message.message_id)
+    else:
+        bot.answer_callback_query(call.id, "❌ Ты не подписан!", show_alert=True)
 
 print("Бот запущен...")
 while True:
