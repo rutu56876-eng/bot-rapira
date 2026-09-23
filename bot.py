@@ -620,19 +620,31 @@ def upgrade_start(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "upg_add")
 def upg_add(call):
-    kb = types.InlineKeyboardMarkup(row_width=1)
-    num = 0
-    for cat in SKINS:
-        for name, price in SKINS[cat]:
-            kb.add(types.InlineKeyboardButton(f"{name} ({price})", callback_data=f"upg_sel_{num}"))
-            num += 1
-    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="upgrade"))
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(call.message.chat.id, "📥 Выбери скин, который хочешь закинуть:", reply_markup=kb)
-    bot.answer_callback_query(call.id)
+    msg = bot.send_message(call.message.chat.id, "✍️ Напиши свой НИК в Rapira:")
+    bot.register_next_step_handler(msg, upg_nick)
+
+def upg_nick(message):
+    nick = message.text
+    msg = bot.send_message(message.chat.id, "✍️ Напиши название скина, который хочешь закинуть:")
+    bot.register_next_step_handler(msg, upg_want, nick)
+
+def upg_want(message, nick):
+    skin_in = message.text
+    user_id = message.from_user.id
+    UPGRADE_REQUESTS[user_id] = {"in": skin_in, "nick": nick}
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("✅ Да", callback_data=f"upg_send_{user_id}"),
+        types.InlineKeyboardButton("❌ Отмена", callback_data="upgrade"),
+    )
+    bot.send_message(
+        message.chat.id,
+        f"❓ Ты хочешь закинуть: {skin_in}?\n"
+        f"Ник в Rapira: {nick}\n\n"
+        f"🕐 Приём скинов: с 18:00 до 22:00 (МСК).\n"
+        f"⚠️ Не пиши «скам» — я реальный админ, всё приму.",
+        reply_markup=kb
+    )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("upg_sel_"))
 def upg_sel(call):
@@ -676,7 +688,7 @@ def upg_sel(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("upg_send_"))
 def upg_send(call):
     user_id = int(call.data.split("_")[2])
-    data = UPGRADE_REQUESTS.get(user_id, {"in": "?", "price": 0})
+    data = UPGRADE_REQUESTS.get(user_id, {"in": "?", "nick": "?"})
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
@@ -690,7 +702,10 @@ def upg_send(call):
     kb.add(types.InlineKeyboardButton("✅ Подтвердить выдачу", callback_data=f"adm_ok_{user_id}"))
     bot.send_message(
         ADMIN_ID,
-        f"📥 Заявка на апгрейд\nИгрок: {user_id}\n📥 Закидывает: {data['in']} ({data['price']})\n\n"
+        f"📥 Заявка на апгрейд\n"
+        f"Игрок: {user_id}\n"
+        f"Ник в Rapira: {data.get('nick', '?')}\n"
+        f"📥 Закидывает: {data.get('in', '?')}\n\n"
         f"Передай скин в игре и нажми «✅ Подтвердить выдачу».",
         reply_markup=kb
     )
