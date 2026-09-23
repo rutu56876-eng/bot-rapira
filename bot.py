@@ -251,7 +251,8 @@ def profile(call):
         pass
     bot.send_message(call.message.chat.id, text, reply_markup=kb)
     bot.answer_callback_query(call.id)
-    @bot.callback_query_handler(func=lambda call: call.data == "inventory")
+
+@bot.callback_query_handler(func=lambda call: call.data == "inventory")
 def inventory(call):
     c = conn.cursor()
     c.execute("SELECT id, item, rarity, price FROM inventory WHERE user_id = ?", (call.from_user.id,))
