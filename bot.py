@@ -989,7 +989,7 @@ def darts_stake(call):
         pass
     bot.send_message(
         call.message.chat.id,
-        f"🎯 Дартс\n\nСтавка: {stake} голды\n\nВыбери цвет:",
+        f"🎯 Дартс\n\nСтавка: {stake} голды\n\nВыбери сектор:",
         reply_markup=kb
     )
     bot.answer_callback_query(call.id)
@@ -1013,17 +1013,26 @@ def darts_bet(call):
         pass
     msg = bot.send_dice(call.message.chat.id, emoji="🎯")
     time.sleep(3)
-    # 1-2 = центр, 3-4 = красное, 5-6 = белое
     result = msg.dice.value
-    if result in [1, 2]:
+    # Привязка значений к секторам
+    if result == 1:
         result_color = "center"
-        result_text = "🟢 Центр"
-    elif result in [3, 4]:
+        result_text = "🟢 Центр (1)"
+    elif result == 2:
         result_color = "red"
-        result_text = "🔴 Красное"
-    else:
+        result_text = "🔴 Красное (2)"
+    elif result == 3:
         result_color = "white"
-        result_text = "⚪ Белое"
+        result_text = "⚪ Белое (3)"
+    elif result == 4:
+        result_color = "red"
+        result_text = "🔴 Красное (4)"
+    elif result == 5:
+        result_color = "white"
+        result_text = "⚪ Белое (5)"
+    else:
+        result_color = "red"
+        result_text = "🔴 Красное (6)"
     if choice == result_color:
         if result_color == "center":
             win = stake * 14
@@ -1034,27 +1043,6 @@ def darts_bet(call):
         bot.send_message(call.message.chat.id, f"🎉 Выпало: {result_text}\nВыигрыш: +{win} голды!", reply_markup=main_menu())
     else:
         bot.send_message(call.message.chat.id, f"😢 Выпало: {result_text}\nПотерял {stake} голды.", reply_markup=main_menu())
-    bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "rating")
-def rating(call):
-    c = conn.cursor()
-    c.execute("SELECT user_id, username, balance FROM users WHERE user_id != ? ORDER BY balance DESC LIMIT 10", (ADMIN_ID,))
-    top = c.fetchall()
-    text = "🏆 Топ-10 по балансу:\n\n"
-    if not top or all(t[2] == 0 for t in top):
-        text += "Пока никого нет."
-    else:
-        for i, (uid, uname, balance) in enumerate(top, 1):
-            name = f"@{uname}" if uname else f"ID {uid}"
-            text += f"{i}. {name} — {balance} монет\n"
-    kb = types.InlineKeyboardMarkup()
-    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(call.message.chat.id, text, reply_markup=kb)
     bot.answer_callback_query(call.id)
 
 @bot.pre_checkout_query_handler(func=lambda query: True)
