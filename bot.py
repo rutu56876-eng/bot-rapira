@@ -201,6 +201,24 @@ def add_gold_cmd(message):
     except:
         bot.send_message(message.chat.id, "❌ Формат: /addgold ID СУММА")
 
+@bot.message_handler(commands=['confirm_skin'])
+def confirm_skin(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    try:
+        parts = message.text.split()
+        user_id = int(parts[1])
+        price = int(parts[2])
+        skin_name = " ".join(parts[3:])
+        c = conn.cursor()
+        c.execute("INSERT INTO inventory (user_id, item, rarity, price) VALUES (?, ?, 'upgrade', ?)",
+                  (user_id, skin_name, price))
+        conn.commit()
+        bot.send_message(user_id, f"✅ Твой скин {skin_name} ({price} голды) зачислен в инвентарь!")
+        bot.send_message(ADMIN_ID, f"✅ Скин {skin_name} ({price}) зачислен игроку {user_id}")
+    except:
+        bot.send_message(ADMIN_ID, "❌ Формат: /confirm_skin ID ЦЕНА Название")
+
 @bot.message_handler(commands=['start'])
 def start(message):
     args = message.text.split()
@@ -233,8 +251,7 @@ def profile(call):
         pass
     bot.send_message(call.message.chat.id, text, reply_markup=kb)
     bot.answer_callback_query(call.id)
-
-@bot.callback_query_handler(func=lambda call: call.data == "inventory")
+    @bot.callback_query_handler(func=lambda call: call.data == "inventory")
 def inventory(call):
     c = conn.cursor()
     c.execute("SELECT id, item, rarity, price FROM inventory WHERE user_id = ?", (call.from_user.id,))
@@ -459,7 +476,6 @@ def pay(call):
         prices=prices
     )
     bot.answer_callback_query(call.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == "buy_gold")
 def buy_gold(call):
     user = get_user(call.from_user.id)
@@ -568,7 +584,6 @@ def gold_upgrade_go(call):
         conn.commit()
         bot.answer_callback_query(call.id, f"😢 ПРОВАЛ! -{amount} голды.", show_alert=True)
     gmode(call)
-
 @bot.callback_query_handler(func=lambda call: call.data == "upgrade")
 def upgrade_start(call):
     c = conn.cursor()
@@ -702,24 +717,6 @@ def adm_ok(call):
     bot.send_message(call.message.chat.id, f"✅ Заявка подтверждена!\nИгрок: {user_id}\nСкин: {skin_name}")
     bot.answer_callback_query(call.id)
 
-@bot.message_handler(commands=['confirm_skin'])
-def confirm_skin(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    try:
-        parts = message.text.split()
-        user_id = int(parts[1])
-        price = int(parts[2])
-        skin_name = " ".join(parts[3:])
-        c = conn.cursor()
-        c.execute("INSERT INTO inventory (user_id, item, rarity, price) VALUES (?, ?, 'upgrade', ?)",
-                  (user_id, skin_name, price))
-        conn.commit()
-        bot.send_message(user_id, f"✅ Твой скин {skin_name} ({price} голды) зачислен в инвентарь!")
-        bot.send_message(ADMIN_ID, f"✅ Скин {skin_name} ({price}) зачислен игроку {user_id}")
-    except:
-        bot.send_message(ADMIN_ID, "❌ Формат: /confirm_skin ID ЦЕНА Название")
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("upg_pick_"))
 def upgrade_pick(call):
     item_id = int(call.data.split("_")[2])
@@ -771,11 +768,11 @@ def upgrade_mode(call):
         for name, p in SKINS[cat]:
             if p <= my_price:
                 continue
-        diff = abs(p - target_price)
-        if diff < best_diff:
-            best_diff = diff
-            target_skin = name
-            target_price = p
+            diff = abs(p - target_price)
+            if diff < best_diff:
+                best_diff = diff
+                target_skin = name
+                target_price = p
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton("✅ Крутить", callback_data=f"upg_go_{item_id}_{target_price}_{mode}"),
@@ -813,18 +810,17 @@ def upgrade_go(call):
     roll = random.uniform(0, 100)
     if roll <= chance:
         c.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
-        # Ищем название скина с подходящей ценой
         skin_name = f"Скин за {target_price}"
-best_diff = 999999
-for cat in SKINS:
-    for name, p in SKINS[cat]:
-        if p <= my_price:
-            continue
-        diff = abs(p - target_price)
-        if diff < best_diff:
-            best_diff = diff
-            skin_name = name
-            target_price = p
+        best_diff = 999999
+        for cat in SKINS:
+            for name, p in SKINS[cat]:
+                if p <= my_price:
+                    continue
+                diff = abs(p - target_price)
+                if diff < best_diff:
+                    best_diff = diff
+                    skin_name = name
+                    target_price = p
         c.execute("INSERT INTO inventory (user_id, item, rarity, price) VALUES (?, ?, 'upgrade', ?)",
                   (call.from_user.id, skin_name, target_price))
         conn.commit()
@@ -847,7 +843,6 @@ for cat in SKINS:
         pass
     bot.send_message(call.message.chat.id, text, reply_markup=main_menu())
     bot.answer_callback_query(call.id)
-
 # === КУБИК ===
 @bot.callback_query_handler(func=lambda call: call.data == "dice")
 def dice_menu(call):
@@ -1081,8 +1076,8 @@ while True:
         bot.polling(none_stop=True, timeout=60, long_polling_timeout=60)
     except Exception as e:
         print(f"Ошибка: {e}")
-        time.sleep(5)  
-        
+        time.sleep(5)
+              
         
         
         
