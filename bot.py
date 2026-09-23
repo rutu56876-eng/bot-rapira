@@ -882,6 +882,29 @@ def upgrade_go(call):
     bot.send_message(call.message.chat.id, text, reply_markup=main_menu())
     bot.answer_callback_query(call.id)
 
+@bot.callback_query_handler(func=lambda call: call.data == "dice")
+def dice_menu(call):
+    user = get_user(call.from_user.id)
+    gold = user[5] if len(user) > 5 else 0
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("Ставка 50", callback_data="dice_stake_50"),
+        types.InlineKeyboardButton("Ставка 100", callback_data="dice_stake_100"),
+        types.InlineKeyboardButton("Ставка 500", callback_data="dice_stake_500"),
+        types.InlineKeyboardButton("Ставка 1000", callback_data="dice_stake_1000"),
+    )
+    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+    bot.send_message(
+        call.message.chat.id,
+        f"🎲 Кубик\n\nТвоя голда: {gold}\n\nВыбери ставку:",
+        reply_markup=kb
+    )
+    bot.answer_callback_query(call.id)
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("dice_stake_"))
 def dice_stake(call):
     stake = int(call.data.split("_")[2])
@@ -1061,6 +1084,27 @@ def send_support(message):
         f"Игрок: {message.from_user.id} (@{message.from_user.username})\n"
         f"Сообщение: {message.text}")
     bot.send_message(message.chat.id, "✅ Сообщение отправлено админу. Ожидай ответа.", reply_markup=main_menu())
+
+@bot.callback_query_handler(func=lambda call: call.data == "rating")
+def rating(call):
+    c = conn.cursor()
+    c.execute("SELECT user_id, username, balance FROM users WHERE user_id != ? ORDER BY balance DESC LIMIT 10", (ADMIN_ID,))
+    top = c.fetchall()
+    text = "🏆 Топ-10 по балансу:\n\n"
+    if not top or all(t[2] == 0 for t in top):
+        text += "Пока никого нет."
+    else:
+        for i, (uid, uname, balance) in enumerate(top, 1):
+            name = f"@{uname}" if uname else f"ID {uid}"
+            text += f"{i}. {name} — {balance} монет\n"
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+    bot.send_message(call.message.chat.id, text, reply_markup=kb)
+    bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "back")
 def back(call):
