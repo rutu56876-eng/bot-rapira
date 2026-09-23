@@ -802,13 +802,16 @@ def upgrade_mode(call):
     my_price = item[1]
     mult = {80: 1.2, 65: 1.5, 50: 1.8, 30: 3.0}[mode]
     target_price = int(my_price * mult)
-    # Ищем скин с подходящей ценой
+    # Ищем ближайший скин по цене
     target_skin = f"Скин за {target_price}"
+    best_diff = 999999
     for cat in SKINS:
         for name, p in SKINS[cat]:
-            if p == target_price:
+            diff = abs(p - target_price)
+            if diff < best_diff:
+                best_diff = diff
                 target_skin = name
-                break
+                target_price = p
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton("✅ Крутить", callback_data=f"upg_go_{item_id}_{target_price}_{mode}"),
@@ -848,11 +851,14 @@ def upgrade_go(call):
         c.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
         # Ищем название скина с подходящей ценой
         skin_name = f"Скин за {target_price}"
+        best_diff = 999999
         for cat in SKINS:
             for name, p in SKINS[cat]:
-                if p == target_price:
+                diff = abs(p - target_price)
+                if diff < best_diff:
+                    best_diff = diff
                     skin_name = name
-                    break
+                    target_price = p
         c.execute("INSERT INTO inventory (user_id, item, rarity, price) VALUES (?, ?, 'upgrade', ?)",
                   (call.from_user.id, skin_name, target_price))
         conn.commit()
