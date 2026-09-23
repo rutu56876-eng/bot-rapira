@@ -765,12 +765,12 @@ def upgrade_mode(call):
     mult = {80: 1.2, 65: 1.5, 50: 1.8, 30: 3.0}[mode]
     target_price = int(my_price * mult)
     # Ищем ближайший скин по цене (только дороже твоего)
-target_skin = f"Скин за {target_price}"
-best_diff = 999999
-for cat in SKINS:
-    for name, p in SKINS[cat]:
-        if p <= my_price:
-            continue
+    target_skin = f"Скин за {target_price}"
+    best_diff = 999999
+    for cat in SKINS:
+        for name, p in SKINS[cat]:
+            if p <= my_price:
+                continue
         diff = abs(p - target_price)
         if diff < best_diff:
             best_diff = diff
