@@ -802,6 +802,13 @@ def upgrade_mode(call):
     my_price = item[1]
     mult = {80: 1.2, 65: 1.5, 50: 1.8, 30: 3.0}[mode]
     target_price = int(my_price * mult)
+    # Ищем скин с подходящей ценой
+    target_skin = f"Скин за {target_price}"
+    for cat in SKINS:
+        for name, p in SKINS[cat]:
+            if p == target_price:
+                target_skin = name
+                break
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton("✅ Крутить", callback_data=f"upg_go_{item_id}_{target_price}_{mode}"),
@@ -816,7 +823,7 @@ def upgrade_mode(call):
         f"🔄 Апгрейд скина\n\n"
         f"🎁 Твой скин: {item[0]} ({my_price} голды)\n"
         f"🎲 Шанс: {mode}%\n"
-        f"📤 Получишь скин за {target_price} голды\n\n"
+        f"📤 Получишь: {target_skin} ({target_price} голды)\n\n"
         f"Крутить?",
         reply_markup=kb
     )
@@ -839,6 +846,7 @@ def upgrade_go(call):
     roll = random.uniform(0, 100)
     if roll <= chance:
         c.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
+        # Ищем название скина с подходящей ценой
         skin_name = f"Скин за {target_price}"
         for cat in SKINS:
             for name, p in SKINS[cat]:
@@ -866,30 +874,6 @@ def upgrade_go(call):
     except:
         pass
     bot.send_message(call.message.chat.id, text, reply_markup=main_menu())
-    bot.answer_callback_query(call.id)
-
-# === КУБИК ===
-@bot.callback_query_handler(func=lambda call: call.data == "dice")
-def dice_menu(call):
-    user = get_user(call.from_user.id)
-    gold = user[5] if len(user) > 5 else 0
-    kb = types.InlineKeyboardMarkup(row_width=2)
-    kb.add(
-        types.InlineKeyboardButton("Ставка 50", callback_data="dice_stake_50"),
-        types.InlineKeyboardButton("Ставка 100", callback_data="dice_stake_100"),
-        types.InlineKeyboardButton("Ставка 500", callback_data="dice_stake_500"),
-        types.InlineKeyboardButton("Ставка 1000", callback_data="dice_stake_1000"),
-    )
-    kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
-    try:
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-    bot.send_message(
-        call.message.chat.id,
-        f"🎲 Кубик\n\nТвоя голда: {gold}\n\nВыбери ставку:",
-        reply_markup=kb
-    )
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("dice_stake_"))
