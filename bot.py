@@ -4,7 +4,7 @@ import sqlite3
 import time
 from telebot import types
 
-BOT_TOKEN = "8912679005:AAFM9gKnLmDL64Fszqi7Vy7HoYTaQQUpAaw"
+BOT_TOKEN = "8912679005:AAE6uiYc8rf4zDNVp9eWLlJ4sCSHg5vekUk"
 ADMIN_ID = 8481806014
 CHANNEL_ID = "@luckydro_p"
 GIFT_ID = "heart"
@@ -514,10 +514,22 @@ def buy_gold(call):
         bot.send_message(call.message.chat.id, text, reply_markup=kb)
     bot.answer_callback_query(call.id)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("gold_") and call.data != "gold_upgrade")
+@bot.callback_query_handler(func=lambda call: call.data.startswith("gold_") and call.data.split("_")[1].isdigit())
 def gold_buy(call):
     amount = int(call.data.split("_")[1])
-    gold = {100: 50, 500: 300, 1000: 700, 2000: 1600}[amount]
+    gold = {100: 50, 500: 300, 1000: 700, 2000: 1600}.get(amount)
+    if not gold:
+        return
+def gold_buy(call):
+    try:
+        amount = int(call.data.split("_")[1])
+    except (IndexError, ValueError):
+        bot.answer_callback_query(call.id, "Ошибка кнопки.")
+        return
+    gold = {100: 50, 500: 300, 1000: 700, 2000: 1600}.get(amount)
+    if not gold:
+        bot.answer_callback_query(call.id, "Ошибка суммы.")
+        return
     user = get_user(call.from_user.id)
     if user[2] < amount:
         bot.answer_callback_query(call.id, "Недостаточно монет!", show_alert=True)
@@ -1265,9 +1277,9 @@ print("Бот запущен...")
 while True:
     try:
         bot.polling(none_stop=True, timeout=60, long_polling_timeout=60)
-    except Exception as e:
-        print(f"Ошибка: {e}")
-        time.sleep(5)
+except Exception as e:
+    print(f"Ошибка: {e}")
+    time.sleep(5)
               
         
         
