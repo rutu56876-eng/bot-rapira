@@ -1050,7 +1050,7 @@ def darts_bet(call):
 @bot.callback_query_handler(func=lambda call: call.data == "rating")
 def rating(call):
     c = conn.cursor()
-    c.execute("SELECT user_id, username, balance FROM users WHERE user_id != ? ORDER BY balance DESC LIMIT 10", (ADMIN_ID,))
+    c.execute("SELECT user_id, username, gold FROM users WHERE user_id != ? ORDER BY gold DESC LIMIT 10", (ADMIN_ID,))
     top = c.fetchall()
     text = "🏆 Топ-10 по балансу:\n\n"
     if not top or all(t[2] == 0 for t in top):
@@ -1058,7 +1058,7 @@ def rating(call):
     else:
         for i, (uid, uname, balance) in enumerate(top, 1):
             name = f"@{uname}" if uname else f"ID {uid}"
-            text += f"{i}. {name} — {balance} монет\n"
+            text += f"{i}. {name} — {gold} голды\n"
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
     try:
