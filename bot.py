@@ -1162,7 +1162,8 @@ def withdraw_gold(call):
 def withdraw_gold_sum(call):
     amount = int(call.data.split("_")[2])
     user = get_user(call.from_user.id)
-    if user[2] < amount:
+    gold = user[5] if len(user) > 5 else 0
+if gold < amount:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
@@ -1198,7 +1199,8 @@ def withdraw_gold_skin(call):
     skin_name = parts[3]
 
     user = get_user(call.from_user.id)
-    if user[2] < price:
+    gold = user[5] if len(user) > 5 else 0
+if gold < price:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
