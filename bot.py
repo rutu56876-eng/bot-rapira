@@ -1163,7 +1163,7 @@ def withdraw_gold_sum(call):
     amount = int(call.data.split("_")[2])
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-if gold < amount:
+    if gold < amount:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
