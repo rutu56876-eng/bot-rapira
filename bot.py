@@ -1058,7 +1058,7 @@ def rating(call):
     else:
         for i, (uid, uname, balance) in enumerate(top, 1):
             name = f"@{uname}" if uname else f"ID {uid}"
-            text += f"{i}. {name} — {gold} голды\n"
+            text += f"{i}. {name} — {balance} голды\n"
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="back"))
     try:
