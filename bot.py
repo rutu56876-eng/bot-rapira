@@ -1203,8 +1203,8 @@ def withdraw_gold_skin(call):
         return
 
     c = conn.cursor()
-    c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?",
-              (price, call.from_user.id))
+    c.execute("UPDATE users SET gold = gold - ? WHERE user_id = ?",
+          (price, call.from_user.id))
     conn.commit()
 
     msg = bot.send_message(
