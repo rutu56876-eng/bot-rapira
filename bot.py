@@ -1173,9 +1173,9 @@ def withdraw_gold_sum(call):
         for name, p in SKINS[cat]:
             if p <= amount:
                 kb.add(types.InlineKeyboardButton(
-                    f"{name} — {p} голды",
-                    callback_data=f"wg_skin_{p}_{name}"
-                ))
+    f"{name} — {p} голды",
+    callback_data=f"wg_skin_{p}"
+))
                 found = True
 
     if not found:
@@ -1191,12 +1191,15 @@ def withdraw_gold_sum(call):
     bot.send_message(call.message.chat.id, text, reply_markup=kb)
     bot.answer_callback_query(call.id)
 
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("wg_skin_"))
 def withdraw_gold_skin(call):
-    parts = call.data.split("_", 3)
-    price = int(parts[2])
-    skin_name = parts[3]
+    price = int(call.data.split("_")[2])
+    skin_name = ""
+    for cat in SKINS:
+        for name, p in SKINS[cat]:
+            if p == price:
+                skin_name = name
+                break
 
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
@@ -1216,7 +1219,6 @@ def withdraw_gold_skin(call):
     )
     bot.register_next_step_handler(msg, withdraw_gold_nick, skin_name, price)
     bot.answer_callback_query(call.id)
-
 
 def withdraw_gold_nick(message, skin_name, price):
     nick = message.text
