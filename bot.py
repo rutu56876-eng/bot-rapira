@@ -1167,22 +1167,22 @@ def withdraw_gold_sum(call):
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
-    kb = types.InlineKeyboardMarkup(row_width=1)
-    found = False
-    for cat in SKINS:
-        for name, p in SKINS[cat]:
-            if p <= amount:
-                kb.add(types.InlineKeyboardButton(
+kb = types.InlineKeyboardMarkup(row_width=1)
+found = False
+for cat in SKINS:
+    for name, p in SKINS[cat]:
+        if p <= amount:
+            kb.add(types.InlineKeyboardButton(
                     f"{name} — {p} голды",
                     callback_data=f"wg_skin_{p}_{name}"
                 ))
-                found = True
+            found = True
 
-    if not found:
-        bot.answer_callback_query(call.id, "Нет скинов под эту сумму!", show_alert=True)
-        return
+if not found:
+    bot.answer_callback_query(call.id, "Нет скинов под эту сумму!", show_alert=True)
+    return
 
-    kb.add(types.InlineKeyboardButton("🔙 Назад", callback_data="withdraw_gold"))
+kb.add(types.InlineKeyboardButton("🔙 Назад", callback_data="withdraw_gold"))
     text = f"💰 Вывод {amount} голды\n\nВыбери скин, который хочешь получить:"
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
