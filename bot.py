@@ -139,6 +139,7 @@ def main_menu():
         types.InlineKeyboardButton("💰 Голда", callback_data="buy_gold"),
         types.InlineKeyboardButton("🎲 Кубик", callback_data="dice"),
         types.InlineKeyboardButton("🎯 Дартс", callback_data="darts"),
+        types.InlineKeyboardButton("💳 Пополнить счёт", callback_data="topup"),
         types.InlineKeyboardButton("📥 Закинуть скин", callback_data="upg_add"),
         types.InlineKeyboardButton("🏆 Рейтинг", callback_data="rating"),
         types.InlineKeyboardButton("💬 Поддержка", callback_data="support"),
