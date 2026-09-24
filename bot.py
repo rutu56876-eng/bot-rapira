@@ -1136,7 +1136,7 @@ def check_sub_callback(call):
         send_menu(call.message.chat.id, call.message.message_id)
     else:
         bot.answer_callback_query(call.id, "❌ Ты не подписан!", show_alert=True)
-        # ================== ВЫВОД ГОЛДЫ ЗА СКИН ==================
+# ================== ВЫВОД ГОЛДЫ ЗА СКИН ==================
 
 @bot.callback_query_handler(func=lambda call: call.data == "withdraw_gold")
 def withdraw_gold(call):
@@ -1167,22 +1167,22 @@ def withdraw_gold_sum(call):
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
-kb = types.InlineKeyboardMarkup(row_width=1)
-found = False
-for cat in SKINS:
-    for name, p in SKINS[cat]:
-        if p <= amount:
-            kb.add(types.InlineKeyboardButton(
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    found = False
+    for cat in SKINS:
+        for name, p in SKINS[cat]:
+            if p <= amount:
+                kb.add(types.InlineKeyboardButton(
                     f"{name} — {p} голды",
                     callback_data=f"wg_skin_{p}_{name}"
                 ))
-            found = True
+                found = True
 
-if not found:
-    bot.answer_callback_query(call.id, "Нет скинов под эту сумму!", show_alert=True)
-    return
+    if not found:
+        bot.answer_callback_query(call.id, "Нет скинов под эту сумму!", show_alert=True)
+        return
 
-kb.add(types.InlineKeyboardButton("🔙 Назад", callback_data="withdraw_gold"))
+    kb.add(types.InlineKeyboardButton("🔙 Назад", callback_data="withdraw_gold"))
     text = f"💰 Вывод {amount} голды\n\nВыбери скин, который хочешь получить:"
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -1200,18 +1200,18 @@ def withdraw_gold_skin(call):
 
     user = get_user(call.from_user.id)
     gold = user[5] if len(user) > 5 else 0
-if gold < price:
+    if gold < price:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
 
     c = conn.cursor()
     c.execute("UPDATE users SET gold = gold - ? WHERE user_id = ?",
-          (price, call.from_user.id))
+              (price, call.from_user.id))
     conn.commit()
 
     msg = bot.send_message(
         call.message.chat.id,
-        f"✅ Скина {skin_name} за {price} голды.\n\n"
+        f"✅ Скин {skin_name} за {price} голды.\n\n"
         f"Теперь напиши свой НИК в Rapira (для передачи скина):"
     )
     bot.register_next_step_handler(msg, withdraw_gold_nick, skin_name, price)
@@ -1225,7 +1225,6 @@ def withdraw_gold_nick(message, skin_name, price):
               (message.from_user.id, skin_name, str(price)))
     conn.commit()
 
-    # Админу — заявка + кнопка
     kb_admin = types.InlineKeyboardMarkup(row_width=1)
     kb_admin.add(types.InlineKeyboardButton("✅ Выполнено", callback_data=f"wg_done_{message.from_user.id}"))
     bot.send_message(ADMIN_ID,
@@ -1236,7 +1235,6 @@ def withdraw_gold_nick(message, skin_name, price):
         f"Сумма: {price} голды"
     , reply_markup=kb_admin)
 
-    # Юзеру — инструкция
     text = (
         f"📥 Заявка на вывод создана!\n\n"
         f"🎁 Скин: {skin_name}\n"
@@ -1269,6 +1267,7 @@ def withdraw_gold_done(call):
         bot.send_message(user_id, "✅ Твой вывод выполнен! Скин передан.")
     except:
         pass
+
 
 print("Бот запущен...")
 while True:
