@@ -322,7 +322,7 @@ def sell_item(call):
     bot.answer_callback_query(call.id, f"✅ Продано за {price} монет!")
     inventory(call)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_"))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("withdraw_") and call.data.split("_")[1].isdigit())
 def withdraw(call):
     item_id = int(call.data.split("_")[1])
     c = conn.cursor()
@@ -515,11 +515,6 @@ def buy_gold(call):
     bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("gold_") and call.data.split("_")[1].isdigit())
-def gold_buy(call):
-    amount = int(call.data.split("_")[1])
-    gold = {100: 50, 500: 300, 1000: 700, 2000: 1600}.get(amount)
-    if not gold:
-        return
 def gold_buy(call):
     try:
         amount = int(call.data.split("_")[1])
@@ -1278,8 +1273,9 @@ while True:
     try:
         bot.polling(none_stop=True, timeout=60, long_polling_timeout=60)
     except Exception as e:
-       print(f"Ошибка: {e}")
-       time.sleep(5)
+        import traceback
+        traceback.print_exc()
+        time.sleep(5)
               
         
         
