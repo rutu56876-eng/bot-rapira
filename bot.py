@@ -1277,9 +1277,9 @@ print("Бот запущен...")
 while True:
     try:
         bot.polling(none_stop=True, timeout=60, long_polling_timeout=60)
-except Exception as e:
-    print(f"Ошибка: {e}")
-    time.sleep(5)
+    except Exception as e:
+       print(f"Ошибка: {e}")
+       time.sleep(5)
               
         
         
