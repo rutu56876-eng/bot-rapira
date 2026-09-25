@@ -1270,6 +1270,38 @@ def withdraw_gold_done(call):
     except:
         pass
 
+@bot.message_handler(commands=['refs'])
+def refs_cmd(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    c = conn.cursor()
+    c.execute("SELECT referrer_id, COUNT(*) FROM users WHERE referrer_id IS NOT NULL GROUP BY referrer_id ORDER BY COUNT(*) DESC")
+    rows = c.fetchall()
+    if not rows:
+        bot.send_message(message.chat.id, "🏆 Рефералов пока нет.")
+        return
+    text = "🏆 Рефереры:\n\n"
+    for i, (rid, cnt) in enumerate(rows, 1):
+        u = get_user(rid)
+        name = f"@{u[1]}" if u and u[1] else f"ID {rid}"
+        text += f"{i}. {name} — {cnt} чел.\n"
+    total = sum(r[1] for r in rows)
+    text += f"\nВсего: {total} рефералов"
+    bot.send_message(message.chat.id, text)
+
+
+@bot.message_handler(commands=['myrefs'])
+def myrefs_cmd(message):
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users WHERE referrer_id = ?", (message.from_user.id,))
+    cnt = c.fetchone()[0]
+    text = (
+        f"👥 Твои рефералы\n\n"
+        f"Привёл: {cnt} человек\n"
+        f"Заработал: {cnt * 10} монет\n\n"
+        f"Продолжай в том же духе."
+    )
+    bot.send_message(message.chat.id, text)
 
 print("Бот запущен...")
 while True:
