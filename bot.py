@@ -9,7 +9,7 @@ ADMIN_ID = 8481806014
 CHANNEL_ID = "@luckydro_p"
 GIFT_ID = "heart"
 RAPIRA_ID = "153935"
-ADMIN_USERNAME = "ertywrate"
+ADMIN_USERNAME = "Gandhro"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
