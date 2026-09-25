@@ -542,8 +542,8 @@ def gold_upgrade(call):
     gold = user[5] if len(user) > 5 else 0
     kb = types.InlineKeyboardMarkup(row_width=1)
     kb.add(
-        types.InlineKeyboardButton("🟢 Шанс 80% — ×1.2", callback_data="gmode_80"),
-        types.InlineKeyboardButton("🟡 Шанс 65% — ×1.5", callback_data="gmode_65"),
+        types.InlineKeyboardButton("🟢 Шанс 80% — ×1.1", callback_data="gmode_80"),
+        types.InlineKeyboardButton("🟡 Шанс 65% — ×1.4", callback_data="gmode_65"),
         types.InlineKeyboardButton("🟠 Шанс 50% — ×1.8", callback_data="gmode_50"),
         types.InlineKeyboardButton("🔴 Шанс 30% — ×3.0", callback_data="gmode_30"),
     )
@@ -1301,6 +1301,21 @@ def myrefs_cmd(message):
         f"Заработал: {cnt * 10} монет\n\n"
         f"Продолжай в том же духе."
     )
+    bot.send_message(message.chat.id, text)
+
+@bot.message_handler(commands=['test80'])
+def test80_cmd(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    import random as _r
+    text = "🎲 Тест шансов (по 1000 ставок)\n\n"
+    for chance in [80, 65, 50, 30]:
+        wins = 0
+        for _ in range(1000):
+            roll = _r.uniform(0, 100)
+            if roll <= chance:
+                wins += 1
+        text += f"Шанс {chance}%: {wins}/1000 ({wins / 10}%)\n"
     bot.send_message(message.chat.id, text)
 
 print("Бот запущен...")
