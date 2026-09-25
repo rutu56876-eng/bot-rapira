@@ -590,7 +590,7 @@ def gold_upgrade_go(call):
     if gold < amount:
         bot.answer_callback_query(call.id, "Недостаточно голды!", show_alert=True)
         return
-    mult = {80: 1.2, 65: 1.5, 50: 1.8, 30: 3.0}[mode]
+    mult = {80: 1.1, 65: 1.4, 50: 1.8, 30: 3.0}[mode]
     roll = random.uniform(0, 100)
     c = conn.cursor()
     if roll <= mode:
